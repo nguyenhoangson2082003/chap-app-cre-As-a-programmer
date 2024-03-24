@@ -1,6 +1,7 @@
-import { populate } from "dotenv";
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReceiverSockId, io } from "../socket/socket.js";
+
 export const sendMessage = async (req, res) => {
     try {
         const {message} = req.body;
@@ -27,10 +28,13 @@ export const sendMessage = async (req, res) => {
             conversation.messages.push(newMessage._id);
 
         }
+        await Promise.all([conversation.save(), newMessage.save()]);
+
         //SOCKET IO
-
-
-        await  Promise.all([conversation.save(), newMessage.save()]);
+        const receiSocketId = getReceiverSockId(receiverId);
+        if(receiSocketId){
+            io.to(receiSocketId).emit("newMessage", newMessage);
+        }
 
         res.status(201).json(newMessage);
 
@@ -40,7 +44,6 @@ export const sendMessage = async (req, res) => {
     }
 };
 
-
 export const getMessages = async (req, res) => {
     try {
         const {id:userToChatId} =  req.params;
@@ -49,14 +52,14 @@ export const getMessages = async (req, res) => {
             participants: {$all : [senderId, userToChatId]},
         }).populate("messages");
 
-
-        if(!conversation) res.status(200).json(conversation.messages);
-
+        if(!conversation) return res.status(200).json([]);
 
         const messages = conversation.messages;
+
         res.status(200).json(messages);
     } catch (error) {
         console.log(`Error in getMessages controller: ${error.message}`);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
+

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import path from "path"
 import express from "express";
 import dotenv from "dotenv";
@@ -30,3 +31,15 @@ server.listen(PORT, () => {
   connectToMongoDB();
   console.log(`Server running on port ${PORT}`);
 });
+=======
+const express = require("express")
+
+const app = express()
+
+app.get("/", (req, res) => {
+
+    res.send("hello world ")
+})
+
+app.listen(5000, () => console.log('Sever Running on port 5000'))
+>>>>>>> 465aa6913f087a1ebb076c4ef9600468404d0e2d
